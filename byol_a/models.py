@@ -87,7 +87,6 @@ class AudioNTT2020(AudioNTT2020Task6):
     """BYOL-A General Purpose Representation Network.
     This is an extension of the DCASE 2020 Task 6 NTT Solution Audio Embedding Network.
     """
-
     def __init__(self, n_mels=64, d=512):
         super().__init__(n_mels=n_mels, d=d)
 

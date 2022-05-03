@@ -31,7 +31,6 @@ import multiprocessing
 import pytorch_lightning as pl
 import fire
 
-
 class AugmentationModule:
     """BYOL-A augmentation module example, the same parameter with the paper."""
 
@@ -62,7 +61,6 @@ class BYOLALearner(pl.LightningModule):
 
     def training_step(self, paired_inputs, batch_idx):
         def to_np(A): return [a.cpu().numpy() for a in A]
-
         bs = paired_inputs[0].shape[0]
         paired_inputs = torch.cat(paired_inputs) # [(B,1,F,T), (B,1,F,T)] -> (2*B,1,F,T)
         mb, sb = to_np((paired_inputs.mean(), paired_inputs.std()))
@@ -72,6 +70,7 @@ class BYOLALearner(pl.LightningModule):
         loss = self.forward(paired_inputs[:bs], paired_inputs[bs:])
         for k, v in {'mb': mb, 'sb': sb, 'ma': ma, 'sa': sa}.items():
             self.log(k, float(v), prog_bar=True, on_step=False, on_epoch=True)
+        # print(loss)
         return loss
 
     def configure_optimizers(self):
@@ -80,6 +79,8 @@ class BYOLALearner(pl.LightningModule):
     def on_before_zero_grad(self, _):
         self.learner.update_moving_average()
 
+def glob_files(audio_dir,exp='*/*.wav'):
+    return list(sorted(Path(audio_dir).glob(exp)))
 
 def main(audio_dir, config_path='config.yaml', d=None, epochs=None, resume=None) -> None:
     cfg = load_yaml_config(config_path)
@@ -92,7 +93,7 @@ def main(audio_dir, config_path='config.yaml', d=None, epochs=None, resume=None)
     logger.info(cfg)
     seed_everything(cfg.seed)
     # Data preparation
-    files = sorted(Path(audio_dir).glob('*.wav'))
+    files = glob_files(audio_dir,"*.wav")+glob_files(audio_dir,"*/*.wav")+glob_files(audio_dir,"*/*/*.wav")+glob_files(audio_dir,"*/*/*/*.wav")
     tfms = AugmentationModule((64, 96), 2 * len(files))
     ds = WaveInLMSOutDataset(cfg, files, labels=None, tfms=tfms)
     dl = DataLoader(ds, batch_size=cfg.bs,
@@ -116,6 +117,7 @@ def main(audio_dir, config_path='config.yaml', d=None, epochs=None, resume=None)
         moving_average_decay=cfg.ema_decay,
     )
     trainer = pl.Trainer(gpus=1, max_epochs=cfg.epochs, weights_summary=None)
+    print(model)
     trainer.fit(learner, dl)
     if trainer.interrupted:
         logger.info('Terminated.')

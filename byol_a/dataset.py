@@ -12,8 +12,27 @@ class MelSpectrogramLibrosa:
 
     def __call__(self, audio):
         X = librosa.stft(np.array(audio), n_fft=self.n_fft, hop_length=self.shift)
-        return torch.tensor(np.matmul(self.mfb, np.abs(X)**2 + np.finfo(float).eps))
-
+        ret = torch.tensor(np.matmul(self.mfb, np.abs(X)**2 + np.finfo(float).eps))
+        # print("mel_:", ret.size())
+        return ret
+    
+class Precompute_Mel:
+    """Mel spectrogram using librosa."""
+    def __init__(self):
+        self.segment_length = 87
+        self.n_mel = 128
+        
+    def __call__(self, path):
+        print(path)
+        path = str(path).replace(".wav","_pcen.npy")
+        buffer = torch.zeros((self.n_mel,self.segment_length))
+        mat = torch.tensor(np.load(path).T)
+        
+        if(mat.size(1)-self.segment_length <= 0): start = 0
+        else: start = int(np.random.uniform(low=0, high=mat.size(1)-self.segment_length))
+        
+        buffer[:,:int(min(self.segment_length,mat.size(1)))] = mat[:,start:start + self.segment_length]
+        return mat
 
 class WaveInLMSOutDataset(Dataset):
     """Wave in, log-mel spectrogram out, dataset class.
@@ -59,6 +78,7 @@ class WaveInLMSOutDataset(Dataset):
             f_max=cfg.f_max,
             power=2,
         )
+        # self.to_melspecgram=Precompute_Mel()
 
     def __len__(self):
         return len(self.files)
@@ -83,7 +103,8 @@ class WaveInLMSOutDataset(Dataset):
 
         # to log mel spectrogram -> (1, n_mels, time)
         lms = (self.to_melspecgram(wav) + torch.finfo().eps).log().unsqueeze(0)
-
+        # lms = (self.to_melspecgram(self.files[idx]) + torch.finfo().eps).unsqueeze(0)
+        
         # transform (augment)
         if self.tfms:
             lms = self.tfms(lms)

@@ -95,7 +95,7 @@ class MixupBYOLA(nn.Module):
             mixed = x
         # update memory bank
         self.memory_bank = (self.memory_bank + [x])[-self.n:]
-
+        # print("mixed:", mixed.size())
         return mixed.to(torch.float)
 
     def __repr__(self):

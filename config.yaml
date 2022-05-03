@@ -1,13 +1,43 @@
+# # Unit duration in seconds for one audio segment.
+# unit_sec: 0.95
+# # FFT parameters.
+# sample_rate: 16000
+# n_fft: 1024
+# win_length: 1024
+# hop_length: 160
+# n_mels: 64
+# f_min: 60
+# f_max: 7800
+# # Dimensions of feature representations.
+# feature_d: 2048
+# # BYOL parameters.
+# proj_size: 256
+# proj_dim: 4096
+# ema_decay: 0.99
+# # Training parameters.
+# seed: 42
+# bs: 256
+# lr: 0.0003
+# epochs: 100
+# gpus: 1
+# num_workers: 8
+# # Weight pathname for resuming training.
+# resume: 
+# # Shape of loh-mel spectrogram [F, T].
+# shape: [64, 96]
+# # Folder to store trained weight files.
+# checkpoint_folder: checkpoints
+
 # Unit duration in seconds for one audio segment.
-unit_sec: 0.95
+unit_sec: 1.0
 # FFT parameters.
-sample_rate: 16000
+sample_rate: 22050
 n_fft: 1024
 win_length: 1024
-hop_length: 160
-n_mels: 64
+hop_length: 256
+n_mels: 128
 f_min: 60
-f_max: 7800
+f_max: 11025
 # Dimensions of feature representations.
 feature_d: 2048
 # BYOL parameters.
@@ -16,7 +46,7 @@ proj_dim: 4096
 ema_decay: 0.99
 # Training parameters.
 seed: 42
-bs: 256
+bs: 128
 lr: 0.0003
 epochs: 100
 gpus: 1
@@ -24,6 +54,6 @@ num_workers: 8
 # Weight pathname for resuming training.
 resume: 
 # Shape of loh-mel spectrogram [F, T].
-shape: [64, 96]
+shape: [128, 87]
 # Folder to store trained weight files.
 checkpoint_folder: checkpoints
