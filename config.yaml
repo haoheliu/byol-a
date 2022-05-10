@@ -29,7 +29,7 @@
 # checkpoint_folder: checkpoints
 
 # Unit duration in seconds for one audio segment.
-unit_sec: 1.0
+unit_sec: 0.5
 # FFT parameters.
 sample_rate: 22050
 n_fft: 1024
@@ -39,21 +39,21 @@ n_mels: 128
 f_min: 60
 f_max: 11025
 # Dimensions of feature representations.
-feature_d: 2048
+feature_d: 512
 # BYOL parameters.
 proj_size: 256
 proj_dim: 4096
 ema_decay: 0.99
 # Training parameters.
 seed: 42
-bs: 128
+bs: 256
 lr: 0.0003
-epochs: 100
+epochs: 500
 gpus: 1
-num_workers: 8
+num_workers: 12
 # Weight pathname for resuming training.
 resume: 
 # Shape of loh-mel spectrogram [F, T].
-shape: [128, 87]
+shape: [128, 44]
 # Folder to store trained weight files.
 checkpoint_folder: checkpoints

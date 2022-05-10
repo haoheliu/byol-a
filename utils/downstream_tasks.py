@@ -157,7 +157,7 @@ class TaskDataSource(BaseDataSource):
 
     def __init__(self, mode):
         super().__init__(*load_metadata(mode, '.'))
-        self.audio_folder = Path('work/16k/' + mode)
+        self.audio_folder = Path('work/22k/' + mode)
 
     def file_name(self, index):
         index = self.real_index(index)

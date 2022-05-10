@@ -48,7 +48,6 @@ def set_requires_grad(model, val):
         p.requires_grad = val
 
 # loss fn
-
 def loss_fn(x, y):
     x = F.normalize(x, dim=-1, p=2)
     y = F.normalize(y, dim=-1, p=2)

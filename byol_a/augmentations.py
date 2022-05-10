@@ -58,7 +58,6 @@ class RandomResizeCrop(nn.Module):
         format_string += ', freq_scale={0})'.format(tuple(round(r, 4) for r in self.freq_scale))
         return format_string
 
-
 def log_mixup_exp(xa, xb, alpha):
     xa = xa.exp()
     xb = xb.exp()

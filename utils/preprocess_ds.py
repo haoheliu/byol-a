@@ -1,8 +1,8 @@
 """Metadata & audio preprocessor for downstream tasks.
 
-This will create `work/{metadata, 16k}` folders for storing preprocessed files.
+This will create `work/{metadata, 22k}` folders for storing preprocessed files.
 The `work/metadata` folder will have .csv files for the downstream tasks.
-The `work/16k` folder will have folders that contain audio files.
+The `work/22k` folder will have folders that contain audio files.
 
 Usage:
     python -m utils.preprocess_ds spcv2 /path/to/speech_commands_v0.02
@@ -48,7 +48,7 @@ def convert_us8k_metadata(root):
 
 def us8k(root):
     convert_us8k_metadata(root)
-    convert_wav(root, 'work/16k/us8k', verbose=False)
+    convert_wav(root, 'work/22k/us8k', verbose=False)
 
 
 # NSynth https://magenta.tensorflow.org/datasets/nsynth
@@ -72,7 +72,7 @@ def convert_nsynth_metadata(root, nsynth='nsynth', n_samples=305979, files=None)
 
 def nsynth(root):
     convert_nsynth_metadata(root)
-    convert_wav(root, 'work/16k/nsynth', verbose=False)
+    convert_wav(root, 'work/22k/nsynth', verbose=False)
 
 
 # FSDnoisy18k http://www.eduardofonseca.net/FSDnoisy18k/
@@ -104,8 +104,7 @@ def convert_fsdnoisy18k_metadata(root):
 
 def fsdnoisy18k(root):
     convert_fsdnoisy18k_metadata(root)
-    convert_wav(root, 'work/16k/fsdnoisy18k', verbose=False)
-
+    convert_wav(root, 'work/22k/fsdnoisy18k', verbose=False)
 
 # Speech Command https://arxiv.org/abs/1804.03209
 
@@ -141,15 +140,14 @@ def convert_spc_metadata(root, version=2):
 
 def spcv1(root):
     convert_spc_metadata(root, version=1)
-    convert_wav(root, 'work/16k/spcv1', verbose=False)
+    convert_wav(root, 'work/22k/spcv1', verbose=False)
 
 
 def spcv2(root):
     convert_spc_metadata(root, version=2)
-    convert_wav(root, 'work/16k/spcv2', verbose=False)
-
+    convert_wav(root, 'work/22k/spcv2', verbose=False)
 
 if __name__ == "__main__":
     Path('work/metadata').mkdir(parents=True, exist_ok=True)
-    Path('work/16k').mkdir(parents=True, exist_ok=True)
+    Path('work/22k').mkdir(parents=True, exist_ok=True)
     fire.Fire()

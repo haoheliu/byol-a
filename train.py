@@ -16,9 +16,9 @@ FLAGS:
 
 Example of training on FSD50K dataset:
     # Preprocess audio files to convert to 16kHz in advance.
-    python -m utils.convert_wav /path/to/fsd50k work/16k/fsd50k
+    python -m utils.convert_wav /path/to/fsd50k work/22k/fsd50k
     # Run training on dev set for 300 epochs
-    python train.py work/16k/fsd50k/FSD50K.dev_audio --epochs=300
+    python train.py work/22k/fsd50k/FSD50K.dev_audio --epochs=300
 """
 
 from byol_a.common import (os, sys, np, Path, random, torch, nn, DataLoader,
@@ -26,8 +26,8 @@ from byol_a.common import (os, sys, np, Path, random, torch, nn, DataLoader,
 from byol_a.byol_pytorch import BYOL
 from byol_a.models import AudioNTT2020
 from byol_a.augmentations import (RandomResizeCrop, MixupBYOLA, RunningNorm, NormalizeBatch)
-from byol_a.dataset import WaveInLMSOutDataset
-import multiprocessing
+from byol_a.dataset import WaveInLMSOutDataset 
+import multiprocessing 
 import pytorch_lightning as pl
 import fire
 
@@ -68,8 +68,8 @@ class BYOLALearner(pl.LightningModule):
         ma, sa = to_np((paired_inputs.mean(), paired_inputs.std()))
 
         loss = self.forward(paired_inputs[:bs], paired_inputs[bs:])
-        for k, v in {'mb': mb, 'sb': sb, 'ma': ma, 'sa': sa}.items():
-            self.log(k, float(v), prog_bar=True, on_step=False, on_epoch=True)
+        for k, v in {'loss': loss, 'mb': mb, 'sb': sb, 'ma': ma, 'sa': sa}.items():
+            self.log(k, float(v), prog_bar=True, on_step=True, on_epoch=True)
         # print(loss)
         return loss
 
@@ -116,8 +116,8 @@ def main(audio_dir, config_path='config.yaml', d=None, epochs=None, resume=None)
         projection_hidden_size=cfg.proj_dim,
         moving_average_decay=cfg.ema_decay,
     )
-    trainer = pl.Trainer(gpus=1, max_epochs=cfg.epochs, weights_summary=None)
-    print(model)
+    trainer = pl.Trainer(gpus=1, max_epochs=cfg.epochs, weights_summary=None, terminate_on_nan=True)
+    
     trainer.fit(learner, dl)
     if trainer.interrupted:
         logger.info('Terminated.')

@@ -51,7 +51,6 @@ def calc_norm_stats(cfg, data_src, n_stats=10000):
         data_src: Data source class object.
         n_stats: Maximum number of files to calculate statistics.
     """
-
     def data_for_stats(data_src):
         # use all files for LOO-CV (Leave One Out CV)
         if data_src.loocv:
@@ -67,23 +66,23 @@ def calc_norm_stats(cfg, data_src, n_stats=10000):
     X = [ds[i] for i in tqdm(sample_idxes)]
     X = np.hstack(X)
     norm_stats = np.array([X.mean(), X.std()])
+    print(f'  ==> mean/std: {norm_stats}, {norm_stats.shape} <- {X.shape}')
     logging.info(f'  ==> mean/std: {norm_stats}, {norm_stats.shape} <- {X.shape}')
     return norm_stats
 
 
 def get_model_feature_d(model_filename):
     """Read number of fature_d in the filename."""
-
     r = re.search('d\d+', Path(model_filename).stem)
     if r is None:
-        print(f'WARNING: feature dimension not found, falling back to 512-d: {model_filename}')
+        print(f'WARNING: feature dimension not found, falling back to 2048-d: {model_filename}')
         d = 512
     else:
         d = int(r.group(0)[1:])
     return d
 
 
-def get_embeddings(cfg, files, model, norm_stats):
+def get_embeddings(cfg, files,labels, model, norm_stats):
     """Get representation embeddings of audio files, converted by the model.
 
     Args:
@@ -93,15 +92,17 @@ def get_embeddings(cfg, files, model, norm_stats):
         norm_stats: Mean & standard deviation calcurlated by calc_norm_stats().
     """
 
-    ds = WaveInLMSOutDataset(cfg, files, labels=None, tfms=PrecomputedNorm(norm_stats))
-    dl = torch.utils.data.DataLoader(ds, batch_size=cfg.bs, num_workers=cfg.num_workers,
+    ds = WaveInLMSOutDataset(cfg, files, labels=labels, tfms=PrecomputedNorm(norm_stats))
+    dl = torch.utils.data.DataLoader(ds, batch_size=16, num_workers=cfg.num_workers,
                                      pin_memory=False, shuffle=False, drop_last=False)
     embs = []
+    lab = []
     with torch.no_grad():
-        for X in tqdm(dl):
+        for X, l in tqdm(dl):
             Y = model(X.to(device)).cpu().detach()
             embs.extend(Y.numpy())
-    return np.array(embs)
+            lab.extend(l.numpy())
+    return np.array(embs), np.array(lab)
 
 
 def _one_linear_eval(X, y, X_val, y_val, X_test, y_test, hidden_sizes, epochs, early_stopping, debug):
@@ -147,7 +148,7 @@ def linear_eval_multi(folds, hidden_sizes=(), epochs=200, early_stopping=True, d
         y = np.array(list(chain(*[folds[idx]['y'] for idx in other_fold_indexes])))
         X_test = np.array(test_fold['X']).squeeze()
         y_test = np.array(test_fold['y'])
-
+        # print(X.shape, y.shape, X_test.shape, y_test.shape)
         score = _one_linear_eval(X, y, None, None, X_test, y_test, hidden_sizes, epochs, early_stopping, debug)
         scores.append(score)
         print(f' {score:.6f}', end='')
@@ -200,6 +201,8 @@ def prepare_linear_evaluation(weight_file, ds_task, unit_sec, n_stats=10000):
     print(cfg)
 
     model = AudioNTT2020(n_mels=cfg.n_mels, d=cfg.feature_d)
+    # import ipdb; ipdb.set_trace()
+    # print("do not load weight")
     model.load_weight(weight_file, device)
     data = create_data_source(ds_task)
 
@@ -213,8 +216,8 @@ def prepare_linear_evaluation(weight_file, ds_task, unit_sec, n_stats=10000):
     for i in range(data.n_folds):
         fold_data = data.subset([i])
         print(f'getting embeddings for fold #{i} ({len(fold_data)} samples)...')
-        folds[i]['X'] = get_embeddings(cfg, fold_data.files, model, norm_stats)
-        folds[i]['y'] = fold_data.labels
+        folds[i]['X'], y = get_embeddings(cfg, fold_data.files,fold_data.labels, model, norm_stats)
+        folds[i]['y'] = y
 
     return cfg, folds, data.loocv
 

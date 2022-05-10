@@ -8,7 +8,7 @@ Converts followings:
     - Resample to the sampling rate in your config.yaml
 
 Usage:
-    python -m utils.convert_wav /path/to/fsd50k work/16k/fsd50k
+    python -m utils.convert_wav /path/to/fsd50k work/22k/fsd50k
 """
 
 from byol_a.common import (sys, Path, torch, torchaudio, AT, load_yaml_config)
