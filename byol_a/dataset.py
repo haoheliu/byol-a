@@ -15,7 +15,37 @@ class MelSpectrogramLibrosa:
         ret = torch.tensor(np.matmul(self.mfb, np.abs(X)**2 + np.finfo(float).eps))
         # print("mel_:", ret.size())
         return ret
-    
+   
+class Precompute_Cached_Mel:
+    """Mel spectrogram using librosa."""
+    def __init__(self, n_mel, segment_frames):
+        self.segment_length = segment_frames
+        self.n_mel = n_mel
+        print("Warning: Cache the training data in the memory, may cause out of memory errors.")
+        self.cache = {}
+        
+    def extract_feature(self, audio_path):
+        features = []
+        for suffix in ["pcen"]: # "delta_mfcc"
+            feature_path = str(audio_path).replace(".wav", "_%s.npy" % suffix)
+            features.append(np.load(feature_path))
+        return np.concatenate(features, axis=1)
+        
+    def get_cached_feature(self, path):
+        if(not path in self.cache.keys()):
+            self.cache[path] = self.extract_feature(path)
+            self.cache[path] = torch.tensor(self.cache[path].T)
+        return self.cache[path]
+        
+    def __call__(self, path):
+        # print(path)
+        mat = self.get_cached_feature(path)
+        
+        if(mat.size(1)-self.segment_length <= 0): start = 0
+        else: start = int(np.random.uniform(low=0, high=mat.size(1)-self.segment_length))
+        
+        return mat[:,start:start + self.segment_length]
+     
 class Precompute_Mel:
     """Mel spectrogram using librosa."""
     def __init__(self, n_mel, segment_frames):
@@ -94,11 +124,11 @@ class WaveInLMSOutDataset(Dataset):
         #     power=2,
         # )
         ###################################################################################
-        self.to_melspecgram2=Precompute_Mel(n_mel=cfg.n_mels, segment_frames = int(self.unit_length/cfg.hop_length)+1)
+        self.to_melspecgram2=Precompute_Cached_Mel(n_mel=cfg.n_mels, segment_frames = int(self.unit_length/cfg.hop_length)+1)
         ###################################################################################
         
     def __len__(self):
-        return len(self.files)
+        return len(self.files)*60*6
 
     def __getitem__(self, idx):
         ###################################################################################

@@ -205,7 +205,7 @@ class AudioNTT2020(nn.Module):
     def __init__(
         self,
         n_mels=64, 
-        d=512,
+        d=2048,
         block=BasicBlock,
         keep_prob=1.0,
         avg_pool=True,
@@ -242,7 +242,7 @@ class AudioNTT2020(nn.Module):
         self.keep_avg_pool = avg_pool
         self.dropout = nn.Dropout(p=1 - self.keep_prob, inplace=False)
         self.drop_rate = drop_rate
-        self.pool = nn.AdaptiveAvgPool2d((4, 2)) # try max pooling
+        self.pool = nn.AdaptiveAvgPool2d((4, 8)) # try max pooling
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -311,6 +311,7 @@ class AudioNTT2020(nn.Module):
         x = self.layer2(x)
         x = self.layer3(x)
         # x = self.layer4(x)
+        
         x = self.pool(x)
         x = x.view(x.size(0), -1)
         assert x.shape[1] == self.d and x.ndim == 2

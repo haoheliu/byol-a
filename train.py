@@ -116,7 +116,8 @@ def main(audio_dir, config_path='config.yaml', d=None, epochs=None, resume=None)
         projection_hidden_size=cfg.proj_dim,
         moving_average_decay=cfg.ema_decay,
     )
-    trainer = pl.Trainer(gpus=1, max_epochs=cfg.epochs, weights_summary=None, terminate_on_nan=True)
+    
+    trainer = pl.Trainer(gpus=1, max_epochs=cfg.epochs, weights_summary=None, terminate_on_nan=True, accumulate_grad_batches=8)
     
     trainer.fit(learner, dl)
     if trainer.interrupted:

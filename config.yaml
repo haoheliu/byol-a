@@ -39,14 +39,14 @@ n_mels: 128
 f_min: 60
 f_max: 11025
 # Dimensions of feature representations.
-feature_d: 512
+feature_d: 2048
 # BYOL parameters.
 proj_size: 256
 proj_dim: 4096
 ema_decay: 0.99
 # Training parameters.
 seed: 42
-bs: 256
+bs: 64
 lr: 0.0003
 epochs: 500
 gpus: 1
@@ -54,6 +54,6 @@ num_workers: 12
 # Weight pathname for resuming training.
 resume: 
 # Shape of loh-mel spectrogram [F, T].
-shape: [128, 44]
+shape: [128, 44] # 0.5: 44
 # Folder to store trained weight files.
 checkpoint_folder: checkpoints
