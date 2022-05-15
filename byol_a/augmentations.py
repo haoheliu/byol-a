@@ -194,6 +194,7 @@ class RunningNorm(nn.Module):
             self.ema_var.put(image)
             self.mean = self.ema_mean()
             self.std = torch.clamp(self.ema_var.std(), torch.finfo().eps, torch.finfo().max)
+        print("mean and std",self.mean, self.std)
         return ((image - self.mean) / self.std)
 
     def __repr__(self):

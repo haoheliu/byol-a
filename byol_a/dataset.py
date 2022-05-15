@@ -27,19 +27,65 @@ class Precompute_Cached_Mel:
     def extract_feature(self, audio_path):
         features = []
         for suffix in ["pcen"]: # "delta_mfcc"
-            feature_path = str(audio_path).replace(".wav", "_%s.npy" % suffix)
+            feature_path = audio_path.replace(".wav", "_%s.npy" % suffix)
             features.append(np.load(feature_path))
-        return np.concatenate(features, axis=1)
+        # mel_spec = np.load(audio_path.replace(".wav", "_mel.npy"))
+        return np.concatenate(features, axis=1)# , mel_specss
         
     def get_cached_feature(self, path):
         if(not path in self.cache.keys()):
             self.cache[path] = self.extract_feature(path)
+            # high_energy, low_energy, mask = self.split_based_ons_energy(torch.tensor(self.cache[path].T), torch.tensor(mel_spec.T))
+            # self.cache[path] = (high_energy, low_energy)
             self.cache[path] = torch.tensor(self.cache[path].T)
+            # self.visualize_energy(mel_spec, mask, path.replace(".wav",".png"))
+            # print("%s: First part: %s, Second part: %s" % (os.path.basename(path), self.cache[path][0].size(), self.cache[path][1].size()))
+        # coin = torch.randint(0,100,(1,))
+        # if(coin[0]%2 == 0):
+        #     return self.cache[path][0]
+        # else:
+        #     return self.cache[path][1]
         return self.cache[path]
+    # def split_based_on_energy(self, tensor, mel_spec):
+    #     energy = torch.sum(mel_spec, dim=0)
+    #     mean_energy = torch.mean(energy)
+    #     threshold = 0.5
+        
+    #     mask = energy > (mean_energy * threshold)
+    #     high_energy, low_energy = tensor[:, mask], tensor[:, ~mask]
+    #     ratio = high_energy.size(1)/(low_energy.size(1) + 1e-8)
+        
+    #     # Adaptive threshold
+    #     max_op = 30
+    #     while(ratio < 0.3 or ratio > 2.0):   
+    #         mask = energy > (mean_energy * threshold)
+    #         high_energy, low_energy = tensor[:, mask], tensor[:, ~mask]
+    #         ratio = high_energy.size(1)/(low_energy.size(1) + 1e-8)
+            
+    #         if(ratio < 0.5): threshold -= 0.01
+    #         if(ratio > 2.0): threshold += 0.01
+            
+    #         max_op -= 1
+    #         if(max_op <= 0): break
+        # return high_energy, low_energy, mask
+    
+    # def visualize_energy(self, mel_spec, mask, save_path):
+    #     # mel_spec: (T, 128)
+    #     import matplotlib.pyplot as plt
+    #     print(type(mel_spec[:600]), type(mask[:600]))
+    #     m, n = mel_spec[:600], mask[:600]
+    #     print(m.shape, n.shape)
+    #     plt.figure(figsize=(15,5))
+    #     plt.subplot(211)
+    #     plt.imshow(m, aspect='auto')
+    #     plt.subplot(212)
+    #     plt.plot(n)
+    #     plt.savefig(save_path)
+    #     plt.close()
         
     def __call__(self, path):
         # print(path)
-        mat = self.get_cached_feature(path)
+        mat = self.get_cached_feature(str(path))
         
         if(mat.size(1)-self.segment_length <= 0): start = 0
         else: start = int(np.random.uniform(low=0, high=mat.size(1)-self.segment_length))
@@ -128,7 +174,7 @@ class WaveInLMSOutDataset(Dataset):
         ###################################################################################
         
     def __len__(self):
-        return len(self.files)*60*6
+        return int(27*60*60/0.5)
 
     def __getitem__(self, idx):
         ###################################################################################
@@ -154,7 +200,9 @@ class WaveInLMSOutDataset(Dataset):
         # lms = (self.to_melspecgram(wav) + torch.finfo().eps).log().unsqueeze(0)
         # # draw(lms,"lms1.png")
         ###################################################################################
-        if(idx >= len(self.files)): idx=0
+        # if(idx >= len(self.files)): idx=0
+        
+        idx = idx % len(self.files)
         lms = (self.to_melspecgram2(self.files[idx]) + torch.finfo().eps).unsqueeze(0)
         # draw(lms2,"lms2.png")
         ###################################################################################

@@ -46,13 +46,13 @@ proj_dim: 4096
 ema_decay: 0.99
 # Training parameters.
 seed: 42
-bs: 64
+bs: 96
 lr: 0.0003
 epochs: 500
 gpus: 1
-num_workers: 12
+num_workers: 0
 # Weight pathname for resuming training.
-resume: 
+resume: /vol/research/dcase2022/project/byol-a/lightning_logs/version_17/checkpoints/epoch=53-step=13716.ckpt
 # Shape of loh-mel spectrogram [F, T].
 shape: [128, 44] # 0.5: 44
 # Folder to store trained weight files.

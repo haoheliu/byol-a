@@ -94,10 +94,10 @@ def main(audio_dir, config_path='config.yaml', d=None, epochs=None, resume=None)
     seed_everything(cfg.seed)
     # Data preparation
     files = glob_files(audio_dir,"*.wav")+glob_files(audio_dir,"*/*.wav")+glob_files(audio_dir,"*/*/*.wav")+glob_files(audio_dir,"*/*/*/*.wav")
-    tfms = AugmentationModule((64, 96), 2 * len(files))
+    tfms = AugmentationModule(None, 2 * len(files))
     ds = WaveInLMSOutDataset(cfg, files, labels=None, tfms=tfms)
     dl = DataLoader(ds, batch_size=cfg.bs,
-                num_workers=multiprocessing.cpu_count(),
+                num_workers=0, # multiprocessing.cpu_count(),
                 pin_memory=True, shuffle=True,)
     logger.info(f'Dataset: {len(files)} .wav files from {audio_dir}')
     # Training preparation
@@ -108,7 +108,7 @@ def main(audio_dir, config_path='config.yaml', d=None, epochs=None, resume=None)
     # Model
     model = AudioNTT2020(n_mels=cfg.n_mels, d=cfg.feature_d)
     if cfg.resume is not None:
-        model.load_weight(cfg.resume)
+        model.load_weight(cfg.resume, "cuda")
     # Training
     learner = BYOLALearner(model, cfg.lr, cfg.shape,
         hidden_layer=-1,
